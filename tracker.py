@@ -19,12 +19,11 @@ import numpy as np
 # cv2.destroyAllWindows()
 
 
-cap = cv2.VideoCapture('movingcars.mp4')
+cap = cv2.VideoCapture('carsmoving.mp4')
 fgbg = cv2.createBackgroundSubtractorMOG2(detectShadows = False)
 
 red_lower_bound = np.array([0,60,80])
 red_upper_bound = np.array([10,256,256])
-
 
 if(cap.isOpened() == False):
     print('Error opening video stream or file')
@@ -33,11 +32,17 @@ while(cap.isOpened()):
     ret, frame = cap.read()
     if ret == True:
         fgmask = fgbg.apply(frame)
+
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-        cv2.imshow('Frame', fgmask)
+        red_mask = cv2.inRange(frame, red_lower_bound, red_upper_bound)
+        masked_img = cv2.bitwise_and(frame, frame, mask = fgmask)
+        masked_img = cv2.bitwise_and(masked_img, masked_img, mask = red_mask)
+        masked_img = cv2.cvtColor(masked_img, cv2.COLOR_HSV2BGR)
+
+        cv2.imshow('Frame', masked_img)
         if cv2.waitKey(25) & 0xFF == ord('q'):
             break
     else:
         break
-cap.realease()
+cap.release()
 cv2.destroyAllWindows()
